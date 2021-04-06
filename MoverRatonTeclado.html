@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			body { margin: 0; }
+		</style>
+	</head>
+	<body>
+		<script type="module">
+			import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
+            import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
+            import { GLTFLoader } from 'https://unpkg.com/three/examples/jsm/loaders/GLTFLoader.js'
+            
+            let camera, scene, renderer, loader, model;
+            var xSpeed = 0.00001;
+            var ySpeed = 0.00001;
+            const delay = 250
+            let controls = {};
+            let player = {
+            height: .5,
+            turnSpeed: .01,
+            speed: .01,
+            jumpHeight: .2,
+            gravity: .01,
+            velocity: 0,
+            
+            playerJumps: false
+            };
+            init();
+            animate()
+            
+            function init () {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+                renderer = new THREE.WebGLRenderer({ antialias: true})
+                loader = new GLTFLoader();
+                //camera.position.set(-30, 0, 15);
+                camera.position.set(0, 0, 0);
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                renderer.setClearColor("#121212")
+                document.body.appendChild( renderer.domElement );
+
+                camera.position.z = 3;
+
+                const controls = new OrbitControls(camera, renderer.domElement);
+                
+                // ambient light
+                const ambientLight = new THREE.AmbientLight ( 0xffffff, 0.2)
+                scene.add( ambientLight )
+
+                // point light
+                const pointLight = new THREE.PointLight( 0xffffff, 1 );
+                pointLight.position.set( 30, 50, 25 );
+                scene.add( pointLight );
+
+                window.addEventListener( 'resize', () => {
+                    throttle(onWindowResize(), delay)
+                } );
+
+                loader.load( '2.glb', function ( gltf ) {
+                    model = gltf.scene
+                    scene.add( model );
+
+                }, undefined, function ( error ) {
+                    console.error( error );
+                } );
+            }
+
+            function throttle(callback, limit) {
+                console.log('hola')
+                let wait = false
+                return function () {
+                    if (!wait) {
+                    callback.apply(null, arguments)
+                    wait = true
+                    setTimeout(function () {
+                        wait = false
+                    }, limit)
+                    }
+                }
+            }
+
+            //prueb
+            //camera.position.set(0, player.height, -5);
+                //camera.lookAt(new THREE.Vector3(0, player.height, 0));
+            // Controls:Listeners
+                document.addEventListener('keydown', ({ keyCode }) => { controls[keyCode] = true });
+                document.addEventListener('keyup', ({ keyCode }) => { controls[keyCode] = false });
+
+                // ...
+                function control() {
+                // Controls:Engine 
+                    if(controls[87]){ // w
+                        camera.position.x -= Math.sin(camera.rotation.y) * player.speed;
+                        camera.position.z -= -Math.cos(camera.rotation.y) * player.speed;
+                        //camera.position.y-=Math.cos()
+                    }
+                    if(controls[83]){ // s
+                        camera.position.x += Math.sin(camera.rotation.y) * player.speed;
+                        camera.position.z += -Math.cos(camera.rotation.y) * player.speed;
+                    }
+                    if(controls[65]){ // a
+                        camera.position.x += Math.sin(camera.rotation.y + Math.PI / 2) * player.speed;
+                        camera.position.z += -Math.cos(camera.rotation.y + Math.PI / 2) * player.speed;
+                    }
+                    if(controls[68]){ // d
+                        camera.position.x += Math.sin(camera.rotation.y - Math.PI / 2) * player.speed;
+                        camera.position.z += -Math.cos(camera.rotation.y - Math.PI / 2) * player.speed;
+                    }
+                    if(controls[37]){ // la
+                        camera.rotation.y -= player.turnSpeed;
+                    }
+                    if(controls[38]){ // arribaa
+                        camera.rotation.x -= player.turnSpeed;
+                    }
+                    if(controls[39]){ // ra
+                        camera.rotation.y += player.turnSpeed;
+                    }
+                    if(controls[40]){ // abajo
+                        camera.rotation.x += player.turnSpeed;
+                    }
+                    if(controls[32]) { // space
+                        if(player.jumps) return false;
+                        player.jumps = true;
+                        player.velocity = -player.jumpHeight;
+                    }
+                }
+
+                function ixMovementUpdate() {
+                player.velocity += player.gravity;
+                //camera.position.y -= player.velocity;
+                
+                /*if(camera.position.y < player.height) {
+                    camera.position.y = player.height;
+                    player.jumps = false;
+                }*/
+                }
+
+                function ixLightcubeAnimation() {
+                let a = .01;
+                Box1.rotation.x += a;
+                Box1.rotation.y += a;
+                }
+
+                function update() {
+                control();
+                ixMovementUpdate();
+                }
+
+                function render() {
+                renderer.render(scene, camera);
+                }
+
+                function loop() {
+                requestAnimationFrame(loop);
+                update();
+                render();
+                }
+            //fin prueba
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize( window.innerWidth, window.innerHeight );
+            }
+
+            function animate() {
+                requestAnimationFrame( animate );
+                update();
+                render();
+                //renderer.render( scene, camera );
+            }
+            
+		</script>
+	</body>
+</html>
